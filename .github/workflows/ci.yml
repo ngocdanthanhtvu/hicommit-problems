@@ -20,7 +20,7 @@ jobs:
       - name: Send Pending Status to API
         run: |
           branch_name=$(echo ${{ github.ref }} | sed 's|refs/heads/||')
-          api_url="https://proxy.kakanie.com/problems/$branch_name/submission/result"
+          api_url="https://turbo-fortnight-xg7pwq7j4vxfjg-5174.app.github.dev/problems/$branch_name/submission/result"
           
           # Mã hóa file Main.java thành base64
           encoded_code=$(base64 -w 0 main.c)
@@ -68,7 +68,7 @@ jobs:
           duration=$((end_time - start_time))
           echo "DURATION=$duration" >> $GITHUB_ENV
           branch_name=$(echo ${{ github.ref }} | sed 's|refs/heads/||')
-          api_url="https://proxy.kakanie.com/problems/$branch_name/submission/result"
+          api_url="https://turbo-fortnight-xg7pwq7j4vxfjg-5174.app.github.dev/problems/$branch_name/submission/result"
           
           # Mã hóa file main.c thành base64
           encoded_code=$(base64 -w 0 main.c)
@@ -99,7 +99,7 @@ jobs:
         if: success()
         run: |
           branch_name=$(echo ${{ github.ref }} | sed 's|refs/heads/||')
-          api_url="https://proxy.kakanie.com/problems/$branch_name/testcases"
+          api_url="https://turbo-fortnight-xg7pwq7j4vxfjg-5174.app.github.dev/problems/$branch_name/testcases"
           curl -s $api_url -o test_cases.json
       - name: Run Tests
         if: success()
@@ -168,7 +168,7 @@ jobs:
         if: success()
         run: |
           branch_name=$(echo ${{ github.ref }} | sed 's|refs/heads/||')
-          api_url="https://proxy.kakanie.com/problems/$branch_name/submission/result"
+          api_url="https://turbo-fortnight-xg7pwq7j4vxfjg-5174.app.github.dev/problems/$branch_name/submission/result"
           
           # Mã hóa file main.c thành base64
           encoded_code=$(base64 -w 0 main.c)
