@@ -1,6 +1,8 @@
 #include <stdio.h>
 
 int main() {
-  printf("Tong: %d", 3+5);
+  int a, b;
+  scanf("%d%d",&a,&b);
+  printf("tong: %d", a+b);
   return 0;
 }
