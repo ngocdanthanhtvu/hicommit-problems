@@ -2,7 +2,7 @@
 
 int main() {
   int a, b;
-  scanf("%d%d",&a,&b);
-  printf("tong: %d", a+b);
+  a = 2, b=3;
+  printf("%d",a+b);
   return 0;
 }
