@@ -6,6 +6,7 @@ int main() {
   scanf("%d", &a);
   printf("\nNhap so thu hai: ");
   scanf("%d", &b);
-  printf("%d",a+b);
+
+  printf("%d", a+b);
   return 0;
 }
