@@ -217,6 +217,10 @@ jobs:
               --arg pass_count "$PASS_COUNT" \
               --arg total_count "$TOTAL_COUNT" \
               --arg duration "$DURATION" \
+              --arg compile_exit_code "$COMPILE_EXIT_CODE" \
+              --arg compile_duration_ms "$COMPILE_DURATION_MS" \
+              --arg compile_stdout "$(cat compile_stdout.txt)" \
+              --arg compile_stderr "$(cat compile_stderr.txt)" \
               --arg code "$encoded_code" \
               '{
                 problem: $branch,
@@ -229,6 +233,10 @@ jobs:
                 pass_count: ($pass_count | tonumber),
                 total_count: ($total_count | tonumber),
                 duration: ($duration | tonumber),
+                compile_exit_code: ($compile_exit_code | tonumber),
+                compile_duration_ms: ($compile_duration_ms | tonumber),
+                compile_stdout: $compile_stdout,
+                compile_stderr: $compile_stderr,
                 code: $code
               }')
       
