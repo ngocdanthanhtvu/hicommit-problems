@@ -129,11 +129,74 @@ jobs:
             -H "Content-Type: application/json" \
             -d "$json_payload"
       - name: Fetch Test Cases from API
+        id: fetch_testcases
         if: success()
         run: |
           branch_name=$(echo ${{ github.ref }} | sed 's|refs/heads/||')
-          api_url="https://turbo-fortnight-xg7pwq7j4vxfjg-5174.app.github.dev/problems/$branch_name/testcases"
-          curl -s $api_url -o test_cases.json
+          api_url="https://turbo-fortnight-xg7pwq7j4vxfjg-5174.app.github.dev/problems/$branch_name/testcases/__invalid__"
+
+          curl --fail-with-body -sS "$api_url" -o test_cases.json
+
+          jq -e 'type == "array"' test_cases.json > /dev/null
+
+          testcase_count=$(jq 'length' test_cases.json)
+
+          echo "Fetched test cases: $testcase_count"
+
+          if [ "$testcase_count" -eq 0 ]; then
+            echo "ERROR: No test cases received from API."
+            exit 1
+          fi
+      - name: Handle Testcase Fetch Failure
+        if: ${{ failure() && steps.fetch_testcases.outcome == 'failure' }}
+        run: |
+          end_time=$(date +%s)
+          start_time=${{ env.START_TIME }}
+          duration=$((end_time - start_time))
+
+          branch_name=$(echo ${{ github.ref }} | sed 's|refs/heads/||')
+          api_url="https://turbo-fortnight-xg7pwq7j4vxfjg-5174.app.github.dev/problems/$branch_name/submission/result"
+
+          encoded_code=$(base64 -w 0 main.c)
+
+          json_payload=$(jq -n \
+            --arg branch "$branch_name" \
+            --arg actor "${{ github.actor }}" \
+            --arg job_name "${{ github.job }}" \
+            --arg run_id "${{ github.run_id }}" \
+            --arg sha "${{ github.sha }}" \
+            --arg status "error" \
+            --arg error_type "infrastructure_error" \
+            --arg error_stage "fetch_testcases" \
+            --arg duration "$duration" \
+            --arg compile_exit_code "$COMPILE_EXIT_CODE" \
+            --arg compile_duration_ms "$COMPILE_DURATION_MS" \
+            --arg compile_stdout "$(cat compile_stdout.txt)" \
+            --arg compile_stderr "$(cat compile_stderr.txt)" \
+            --arg code "$encoded_code" \
+            '{
+              problem: $branch,
+              actor: $actor,
+              job_name: $job_name,
+              run_id: $run_id,
+              sha: $sha,
+              status: $status,
+              error_type: $error_type,
+              error_stage: $error_stage,
+              duration: ($duration | tonumber),
+              compile_exit_code: ($compile_exit_code | tonumber),
+              compile_duration_ms: ($compile_duration_ms | tonumber),
+              compile_stdout: $compile_stdout,
+              compile_stderr: $compile_stderr,
+              code: $code
+            }')
+
+          echo "JSON Payload: $json_payload"
+
+          curl -X POST "$api_url" \
+            -H "Content-Type: application/json" \
+            -d "$json_payload"
+
       - name: Run Tests
         if: success()
         id: run_tests
