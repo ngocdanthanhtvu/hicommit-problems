@@ -9,6 +9,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      TEST_TIMEOUT_MS: 2000
+
     steps:
       - name: Record start time
         id: start_time
@@ -213,17 +216,40 @@ jobs:
             echo "Running test with ID: $id"
             echo "Input: $input"
             echo "Expected Output: $expected_output"
-            # Run the program and handle any errors
-            if ! echo "$input" | ./my_program > output.txt; then
+            # Run the program with timeout and collect telemetry
+            test_start_ns=$(date +%s%N)
+
+            set +e
+            timeout_seconds=$(awk -v ms="$TEST_TIMEOUT_MS" 'BEGIN { printf "%.3f", ms / 1000 }')
+            echo "$input" | timeout "${timeout_seconds}s" ./my_program > output.txt 2> error.txt
+            test_exit_code=$?
+            set -e
+
+            test_end_ns=$(date +%s%N)
+            test_duration_ms=$(( (test_end_ns - test_start_ns) / 1000000 ))
+
+            test_stderr=$(cat error.txt)
+
+            test_signal=""
+            if [ "$test_exit_code" -gt 128 ]; then
+              test_signal=$((test_exit_code - 128))
+            fi
+
+            if [ "$test_exit_code" -eq 124 ]; then
+              echo "Test $id timed out!"
+              result_status="timeout"
+              actual_output=$(cat output.txt)
+              overall_status="error"
+            elif [ "$test_exit_code" -ne 0 ]; then
               echo "Test $id encountered an error!"
               result_status="error"
-              actual_output="N/A"  # Do not record actual output if there's an error
+              actual_output=$(cat output.txt)
               overall_status="error"
             else
-              # Ensure there's a newline at the end of both output files
               sed -i -e '$a\' output.txt
               actual_output=$(cat output.txt)
               echo "Actual Output: $actual_output"
+
               if [ "$actual_output" == "$expected_output" ]; then
                 echo "Test $id passed!"
                 result_status="passed"
@@ -236,8 +262,29 @@ jobs:
             fi
             echo "---------------------------"
             # Append the new result to the JSON array
-            results=$(echo "$results" | jq --arg id "$id" --arg status "$result_status" --arg actual_output "$actual_output" \
-              '. += [{"id": $id, "status": $status, "actual_output": $actual_output}]')
+            results=$(echo "$results" | jq \
+              --arg id "$id" \
+              --arg input "$input" \
+              --arg expected_output "$expected_output" \
+              --arg actual_output "$actual_output" \
+              --arg status "$result_status" \
+              --arg stderr "$test_stderr" \
+              --arg exit_code "$test_exit_code" \
+              --arg duration_ms "$test_duration_ms" \
+              --arg timeout_ms "$TEST_TIMEOUT_MS" \
+              --arg signal "$test_signal" \
+              '. += [{
+                "id": $id,
+                "input": $input,
+                "expected_output": $expected_output,
+                "actual_output": $actual_output,
+                "status": $status,
+                "exit_code": ($exit_code | tonumber),
+                "stderr": $stderr,
+                "duration_ms": ($duration_ms | tonumber),
+                "timeout_ms": ($timeout_ms | tonumber),
+                "signal": (if $signal == "" then null else ($signal | tonumber) end)
+              }]')
             total_count=$((total_count + 1))
           done < test_cases_list.txt
           # Log results for debugging
