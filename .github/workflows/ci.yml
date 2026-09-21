@@ -59,9 +59,34 @@ jobs:
       - name: Compile Code
         id: compile
         run: |
-          gcc -o my_program main.c -std=c99
+          compile_start_ns=$(date +%s%N)
+
+          set +e
+          gcc -o my_program main.c -std=c99 \
+            > compile_stdout.txt \
+            2> compile_stderr.txt
+          compile_exit_code=$?
+          set -e
+
+          compile_end_ns=$(date +%s%N)
+          compile_duration_ms=$(( (compile_end_ns - compile_start_ns) / 1000000 ))
+
+          echo "COMPILE_EXIT_CODE=$compile_exit_code" >> "$GITHUB_ENV"
+          echo "COMPILE_DURATION_MS=$compile_duration_ms" >> "$GITHUB_ENV"
+
+          echo "=== COMPILE TELEMETRY ==="
+          echo "Exit code: $compile_exit_code"
+          echo "Duration ms: $compile_duration_ms"
+          echo "--- stdout ---"
+          cat compile_stdout.txt
+          echo "--- stderr ---"
+          cat compile_stderr.txt
+
+          if [ "$compile_exit_code" -ne 0 ]; then
+            exit "$compile_exit_code"
+          fi
       - name: Handle Compile Failure
-        if: failure()
+        if: ${{ failure() && steps.compile.outcome == 'failure' }}
         run: |
           end_time=$(date +%s)
           start_time=${{ env.START_TIME }}
@@ -80,6 +105,10 @@ jobs:
             --arg sha "${{ github.sha }}" \
             --arg status "compile_error" \
             --arg duration "$duration" \
+            --arg compile_exit_code "$COMPILE_EXIT_CODE" \
+            --arg compile_duration_ms "$COMPILE_DURATION_MS" \
+            --arg compile_stdout "$(cat compile_stdout.txt)" \
+            --arg compile_stderr "$(cat compile_stderr.txt)" \
             --arg code "$encoded_code" \
             '{
               problem: $branch,
@@ -89,6 +118,10 @@ jobs:
               sha: $sha,
               status: $status,
               duration: ($duration | tonumber),
+              compile_exit_code: ($compile_exit_code | tonumber),
+              compile_duration_ms: ($compile_duration_ms | tonumber),
+              compile_stdout: $compile_stdout,
+              compile_stderr: $compile_stderr,
               code: $code
             }')
           echo "JSON Payload: $json_payload"
