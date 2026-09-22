@@ -9,3 +9,5 @@ int main() {
 // telemetry storage test
 
 // per-test telemetry persistence test
+
+// signal_number persistence test
