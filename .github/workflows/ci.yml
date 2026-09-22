@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     env:
       TEST_TIMEOUT_MS: 2000
@@ -18,7 +18,7 @@ jobs:
         run: echo "START_TIME=$(date +%s)" >> $GITHUB_ENV
         
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Send Pending Status to API
         run: |
@@ -66,6 +66,14 @@ jobs:
       - name: Compile Code
         id: compile
         run: |
+          compiler="gcc"
+          compiler_version=$(gcc --version | head -n 1)
+          compile_command="gcc -o my_program main.c -std=c99"
+
+          echo "COMPILER=$compiler" >> "$GITHUB_ENV"
+          echo "COMPILER_VERSION=$compiler_version" >> "$GITHUB_ENV"
+          echo "COMPILE_COMMAND=$compile_command" >> "$GITHUB_ENV"
+
           compile_start_ns=$(date +%s%N)
 
           set +e
@@ -116,6 +124,9 @@ jobs:
             --arg duration "$duration" \
             --arg compile_exit_code "$COMPILE_EXIT_CODE" \
             --arg compile_duration_ms "$COMPILE_DURATION_MS" \
+            --arg compiler "$COMPILER" \
+            --arg compiler_version "$COMPILER_VERSION" \
+            --arg compile_command "$COMPILE_COMMAND" \
             --arg compile_stdout "$(cat compile_stdout.txt)" \
             --arg compile_stderr "$(cat compile_stderr.txt)" \
             --arg code "$encoded_code" \
@@ -131,6 +142,9 @@ jobs:
               duration: ($duration | tonumber),
               compile_exit_code: ($compile_exit_code | tonumber),
               compile_duration_ms: ($compile_duration_ms | tonumber),
+              compiler: $compiler,
+              compiler_version: $compiler_version,
+              compile_command: $compile_command,
               compile_stdout: $compile_stdout,
               compile_stderr: $compile_stderr,
               code: $code
@@ -343,6 +357,9 @@ jobs:
               --arg duration "$DURATION" \
               --arg compile_exit_code "$COMPILE_EXIT_CODE" \
               --arg compile_duration_ms "$COMPILE_DURATION_MS" \
+              --arg compiler "$COMPILER" \
+              --arg compiler_version "$COMPILER_VERSION" \
+              --arg compile_command "$COMPILE_COMMAND" \
               --arg compile_stdout "$(cat compile_stdout.txt)" \
               --arg compile_stderr "$(cat compile_stderr.txt)" \
               --arg code "$encoded_code" \
@@ -361,6 +378,9 @@ jobs:
                 duration: ($duration | tonumber),
                 compile_exit_code: ($compile_exit_code | tonumber),
                 compile_duration_ms: ($compile_duration_ms | tonumber),
+                compiler: $compiler,
+                compiler_version: $compiler_version,
+                compile_command: $compile_command,
                 compile_stdout: $compile_stdout,
                 compile_stderr: $compile_stderr,
                 code: $code
