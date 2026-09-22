@@ -11,3 +11,5 @@ int main() {
 // per-test telemetry persistence test
 
 // signal_number persistence test
+
+// telemetry source snapshot test
