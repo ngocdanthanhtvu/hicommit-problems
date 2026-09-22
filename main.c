@@ -7,3 +7,5 @@ int main() {
   return 0;
 }
 // telemetry storage test
+
+// per-test telemetry persistence test
