@@ -260,9 +260,11 @@ jobs:
           total_count=0
           results="[]"
           overall_status="passed"
+          testset_version=$(jq -r '.[0].testset_version // empty' test_cases.json)
           jq -c '.[]' test_cases.json > test_cases_list.txt
           while IFS= read -r test_case; do
             id=$(echo "$test_case" | jq -r '.id')
+            testcase_version=$(echo "$test_case" | jq -r '.testcase_version // empty')
             input=$(echo "$test_case" | jq -r '.input')
             expected_output=$(echo "$test_case" | jq -r '.output')
             echo "Running test with ID: $id"
@@ -316,6 +318,7 @@ jobs:
             # Append the new result to the JSON array
             results=$(echo "$results" | jq \
               --arg id "$id" \
+              --arg testcase_version "$testcase_version" \
               --arg input "$input" \
               --arg expected_output "$expected_output" \
               --arg actual_output "$actual_output" \
@@ -327,6 +330,7 @@ jobs:
               --arg signal "$test_signal" \
               '. += [{
                 "id": $id,
+                "testcase_version": $testcase_version,
                 "input": $input,
                 "expected_output": $expected_output,
                 "actual_output": $actual_output,
@@ -351,6 +355,7 @@ jobs:
           echo "OVERALL_STATUS=$overall_status" >> $GITHUB_ENV
           echo "PASS_COUNT=$pass_count" >> $GITHUB_ENV
           echo "TOTAL_COUNT=$total_count" >> $GITHUB_ENV
+          echo "TESTSET_VERSION=$testset_version" >> $GITHUB_ENV
       - name: Record end time and calculate duration
         id: end_time
         if: success()
@@ -383,6 +388,7 @@ jobs:
               --arg result "$RESULTS_JSON" \
               --arg pass_count "$PASS_COUNT" \
               --arg total_count "$TOTAL_COUNT" \
+              --arg testset_version "$TESTSET_VERSION" \
               --arg duration "$DURATION" \
               --arg compile_exit_code "$COMPILE_EXIT_CODE" \
               --arg compile_duration_ms "$COMPILE_DURATION_MS" \
@@ -407,6 +413,7 @@ jobs:
                 result: ($result | fromjson),
                 pass_count: ($pass_count | tonumber),
                 total_count: ($total_count | tonumber),
+                testset_version: $testset_version,
                 duration: ($duration | tonumber),
                 compile_exit_code: ($compile_exit_code | tonumber),
                 compile_duration_ms: ($compile_duration_ms | tonumber),
