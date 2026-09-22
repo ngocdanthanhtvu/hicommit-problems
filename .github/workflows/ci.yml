@@ -11,6 +11,8 @@ jobs:
 
     env:
       TEST_TIMEOUT_MS: 2000
+      EXECUTION_ENVIRONMENT: ubuntu-24.04
+      TELEMETRY_RUNNER_VERSION: 1.0.0
 
     steps:
       - name: Record start time
@@ -35,6 +37,9 @@ jobs:
               --arg run_id "${{ github.run_id }}" \
               --arg run_attempt "${{ github.run_attempt }}" \
               --arg workflow_name "${{ github.workflow }}" \
+              --arg execution_environment "$EXECUTION_ENVIRONMENT" \
+              --arg architecture "${{ runner.arch }}" \
+              --arg runner_version "$TELEMETRY_RUNNER_VERSION" \
               --arg sha "${{ github.sha }}" \
               --arg status "pending" \
               --arg code "$encoded_code" \
@@ -45,6 +50,9 @@ jobs:
                 run_id: $run_id,
                 run_attempt: ($run_attempt | tonumber),
                 workflow_name: $workflow_name,
+                execution_environment: $execution_environment,
+                architecture: $architecture,
+                runner_version: $runner_version,
                 sha: $sha,
                 status: $status,
                 code: $code
@@ -119,6 +127,9 @@ jobs:
             --arg run_id "${{ github.run_id }}" \
             --arg run_attempt "${{ github.run_attempt }}" \
             --arg workflow_name "${{ github.workflow }}" \
+            --arg execution_environment "$EXECUTION_ENVIRONMENT" \
+            --arg architecture "${{ runner.arch }}" \
+            --arg runner_version "$TELEMETRY_RUNNER_VERSION" \
             --arg sha "${{ github.sha }}" \
             --arg status "compile_error" \
             --arg duration "$duration" \
@@ -137,6 +148,9 @@ jobs:
               run_id: $run_id,
               run_attempt: ($run_attempt | tonumber),
               workflow_name: $workflow_name,
+              execution_environment: $execution_environment,
+              architecture: $architecture,
+              runner_version: $runner_version,
               sha: $sha,
               status: $status,
               duration: ($duration | tonumber),
@@ -191,6 +205,9 @@ jobs:
             --arg run_id "${{ github.run_id }}" \
             --arg run_attempt "${{ github.run_attempt }}" \
             --arg workflow_name "${{ github.workflow }}" \
+            --arg execution_environment "$EXECUTION_ENVIRONMENT" \
+            --arg architecture "${{ runner.arch }}" \
+            --arg runner_version "$TELEMETRY_RUNNER_VERSION" \
             --arg sha "${{ github.sha }}" \
             --arg status "error" \
             --arg error_type "infrastructure_error" \
@@ -198,6 +215,9 @@ jobs:
             --arg duration "$duration" \
             --arg compile_exit_code "$COMPILE_EXIT_CODE" \
             --arg compile_duration_ms "$COMPILE_DURATION_MS" \
+            --arg compiler "$COMPILER" \
+            --arg compiler_version "$COMPILER_VERSION" \
+            --arg compile_command "$COMPILE_COMMAND" \
             --arg compile_stdout "$(cat compile_stdout.txt)" \
             --arg compile_stderr "$(cat compile_stderr.txt)" \
             --arg code "$encoded_code" \
@@ -208,6 +228,9 @@ jobs:
               run_id: $run_id,
               run_attempt: ($run_attempt | tonumber),
               workflow_name: $workflow_name,
+              execution_environment: $execution_environment,
+              architecture: $architecture,
+              runner_version: $runner_version,
               sha: $sha,
               status: $status,
               error_type: $error_type,
@@ -215,6 +238,9 @@ jobs:
               duration: ($duration | tonumber),
               compile_exit_code: ($compile_exit_code | tonumber),
               compile_duration_ms: ($compile_duration_ms | tonumber),
+              compiler: $compiler,
+              compiler_version: $compiler_version,
+              compile_command: $compile_command,
               compile_stdout: $compile_stdout,
               compile_stderr: $compile_stderr,
               code: $code
@@ -349,6 +375,9 @@ jobs:
               --arg run_id "${{ github.run_id }}" \
               --arg run_attempt "${{ github.run_attempt }}" \
               --arg workflow_name "${{ github.workflow }}" \
+              --arg execution_environment "$EXECUTION_ENVIRONMENT" \
+              --arg architecture "${{ runner.arch }}" \
+              --arg runner_version "$TELEMETRY_RUNNER_VERSION" \
               --arg sha "${{ github.sha }}" \
               --arg status "$OVERALL_STATUS" \
               --arg result "$RESULTS_JSON" \
@@ -370,6 +399,9 @@ jobs:
                 run_id: $run_id,
                 run_attempt: ($run_attempt | tonumber),
                 workflow_name: $workflow_name,
+                execution_environment: $execution_environment,
+                architecture: $architecture,
+                runner_version: $runner_version,
                 sha: $sha,
                 status: $status,
                 result: ($result | fromjson),
