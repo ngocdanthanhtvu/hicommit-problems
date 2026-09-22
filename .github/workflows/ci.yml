@@ -177,7 +177,7 @@ jobs:
         if: success()
         run: |
           branch_name=$(echo ${{ github.ref }} | sed 's|refs/heads/||')
-          api_url="https://turbo-fortnight-xg7pwq7j4vxfjg-5174.app.github.dev/problems/$branch_name/testcases"
+          api_url="https://turbo-fortnight-xg7pwq7j4vxfjg-5174.app.github.dev/problems/$branch_name/testcases-invalid"
 
           curl --fail-with-body -sS "$api_url" -o test_cases.json
 
