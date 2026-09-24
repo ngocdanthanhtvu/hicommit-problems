@@ -11,4 +11,4 @@ permissions:
 
 jobs:
   build:
-    uses: ngocdanthanhtvu/hicommit-runner/.github/workflows/c-runner.yml@b1aa0f53904808b88555f8782dc01b4489b9bd75
+    uses: ngocdanthanhtvu/hicommit-runner/.github/workflows/c-runner.yml@15729cc8418e268324feda69f27327eaf0975bf9
